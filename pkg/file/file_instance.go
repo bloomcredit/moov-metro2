@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 	"unicode"
 
 	"github.com/bloomcredit/moov-metro2/pkg/lib"
@@ -264,10 +265,18 @@ func (f *fileInstance) String(isNewLine bool) string {
 	header := f.Header.String() + newLine
 
 	// Data Block
+	start := time.Now()
+	data := ""
+	for _, base := range f.Bases {
+		data += base.String() + newLine
+	}
+	f.logger.Debug().Logf("Data Block took %s", time.Since(start))
+
+	start = time.Now()
 	result := ""
-	pageSize := int(math.Ceil(float64(len(f.Bases)) / float64(10)))
+	pageSize := int(math.Ceil(float64(len(f.Bases)) / float64(20)))
 	basePages := [][]lib.Record{}
-	dataPages := make([]string, 10)
+	dataPages := make([]string, 20)
 	for i := 0; i < len(f.Bases); i += pageSize {
 		end := i + pageSize
 		if end > len(f.Bases) {
@@ -291,6 +300,36 @@ func (f *fileInstance) String(isNewLine bool) string {
 	for _, page := range dataPages {
 		result += page
 	}
+	f.logger.Debug().Logf("Data Block with 20 parallelization took %s", time.Since(start))
+
+	start = time.Now()
+	result = ""
+	pageSize = int(math.Ceil(float64(len(f.Bases)) / float64(5)))
+	basePages = [][]lib.Record{}
+	dataPages = make([]string, 5)
+	for i := 0; i < len(f.Bases); i += pageSize {
+		end := i + pageSize
+		if end > len(f.Bases) {
+			end = len(f.Bases)
+		}
+		basePages = append(basePages, f.Bases[i:end])
+	}
+	for i, page := range basePages {
+		wg.Add(1)
+		go func(idx int, page []lib.Record) {
+			defer wg.Done()
+			result := ""
+			for _, base := range page {
+				result += base.String() + newLine
+			}
+			dataPages[idx] = result
+		}(i, page)
+	}
+	wg.Wait()
+	for _, page := range dataPages {
+		result += page
+	}
+	f.logger.Debug().Logf("Data Block with 5 parallelization took %s", time.Since(start))
 
 	// Trailer Block
 	trailer := f.Trailer.String()
