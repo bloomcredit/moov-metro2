@@ -270,7 +270,7 @@ func (f *fileInstance) String(isNewLine bool) string {
 	for _, base := range f.Bases {
 		data += base.String() + newLine
 	}
-	f.logger.Debug().Logf("Data Block took %s", time.Since(start))
+	fmt.Printf("Data Block took %s", time.Since(start))
 
 	start = time.Now()
 	result := ""
@@ -300,7 +300,7 @@ func (f *fileInstance) String(isNewLine bool) string {
 	for _, page := range dataPages {
 		result += page
 	}
-	f.logger.Debug().Logf("Data Block with 20 parallelization took %s", time.Since(start))
+	fmt.Printf("Data Block with 20 parallelization took %s", time.Since(start))
 
 	start = time.Now()
 	result = ""
@@ -329,7 +329,7 @@ func (f *fileInstance) String(isNewLine bool) string {
 	for _, page := range dataPages {
 		result += page
 	}
-	f.logger.Debug().Logf("Data Block with 5 parallelization took %s", time.Since(start))
+	fmt.Printf("Data Block with 5 parallelization took %s", time.Since(start))
 
 	// Trailer Block
 	trailer := f.Trailer.String()
