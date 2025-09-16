@@ -15,6 +15,8 @@ import (
 	"sync"
 	"unicode"
 
+	"github.com/bloomcredit/moov-metro2/pkg/lib"
+	"github.com/bloomcredit/moov-metro2/pkg/utils"
 	"github.com/moov-io/base/log"
 	"github.com/moov-io/metro2/pkg/lib"
 	"github.com/moov-io/metro2/pkg/utils"
@@ -313,12 +315,10 @@ func (f *fileInstance) ConcurrentString(isNewLine bool, goroutines int) string {
 
 	// Trailer Block
 	trailer := f.Trailer.String()
-
-	buf.Grow(len(header) + len(data) + len(trailer))
+	buf.Grow(len(header) + len(result) + len(trailer))
 	buf.WriteString(header)
-	buf.WriteString(data)
+	buf.WriteString(result)
 	buf.WriteString(trailer)
-
 	return buf.String()
 }
 
